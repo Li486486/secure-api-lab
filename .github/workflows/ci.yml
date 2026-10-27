@@ -1,0 +1,36 @@
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - run: pip install bandit safety
+      - name: SAST - Bandit Scan
+        # || true 确保即使发现漏洞也不会中断流水线，保证报告生成
+        run: bandit -r . -f json -o bandit-report.json || true
+      - name: Upload SAST Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  sca:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - run: pip install safety
+      - name: SCA - Safety Check
+        run: safety check --json --output safety-report.json || true
+      - name: Upload SCA Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-report
+          path: safety-report.json
