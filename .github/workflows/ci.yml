@@ -9,18 +9,19 @@ on:
 
 jobs:
   security-scanning:
-    runs-on: ubuntu-latest
-    
+    # 明确指定使用 ubuntu-24.04（避免默认使用 ubuntu-26.04 导致 Python 版本不可用）
+    runs-on: ubuntu-24.04
+
     steps:
       # 1. 拉取代码
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. 设置 Python 环境
+      # 2. 设置 Python 环境（使用 3.12 确保在 ubuntu-24.04 上可用）
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       # 3. 安装项目依赖
       - name: Install Dependencies
@@ -40,7 +41,7 @@ jobs:
           pip install safety
           safety check -r requirements.txt --json > safety-report.json || true
 
-      # 6. 上传安全扫描报告（已更新为 v4）
+      # 6. 上传安全扫描报告
       - name: Upload Security Reports
         uses: actions/upload-artifact@v4
         if: always()
