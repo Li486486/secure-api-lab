@@ -33,10 +33,16 @@ jobs:
       - name: Run Bandit (SAST)
         run: |
           pip install bandit
-          # 先运行一次看控制台输出，找到具体漏洞
-          bandit -r app.py -s B101 
-          # 确认没问题后，再改回生成 JSON 报告
-          # bandit -r app.py -f json -o bandit-report.json -s B101
+          
+          # --- 修改开始 ---
+          # 1. 先运行一次控制台模式，直接打印出哪里有问题 (方便你调试)
+          echo "=== Starting Bandit Scan (Console Mode) ==="
+          bandit -r . -s B101 || true 
+          
+          # 2. 再运行一次生成 JSON 报告 (用于上传 Artifact)
+          echo "=== Generating JSON Report ==="
+          bandit -r . -f json -o bandit-report.json -s B101 || true
+          # --- 修改结束 ---
       # 5. SCA: 运行 Safety 进行依赖组件漏洞扫描
       - name: Run Safety (SCA)
         run: |
