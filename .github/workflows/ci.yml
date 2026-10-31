@@ -14,11 +14,11 @@ jobs:
     steps:
       # 1. 拉取代码
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. 设置 Python 环境
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -29,28 +29,24 @@ jobs:
           pip install -r requirements.txt
 
       # 4. SAST: 运行 Bandit 进行静态代码安全分析
-      # Bandit 会扫描 Python 代码中的常见安全问题（如硬编码密码、不安全的加密算法等）
       - name: Run Bandit (SAST)
         run: |
           pip install bandit
-          # 扫描 app.py 文件，输出 JSON 格式报告，忽略低级别问题(B101)
-          bandit -r app.py -f json -o bandit-report.json -x tests -s B101 
+          bandit -r app.py -f json -o bandit-report.json -x tests -s B101
 
       # 5. SCA: 运行 Safety 进行依赖组件漏洞扫描
-      # Safety 会检查 requirements.txt 中的包是否存在已知的 CVE 漏洞
       - name: Run Safety (SCA)
         run: |
           pip install safety
-          # 检查依赖，生成 JSON 报告
           safety check -r requirements.txt --json > safety-report.json || true
 
-      # 6. 上传安全扫描报告
-      # 即使扫描发现了漏洞导致步骤失败，报告也会被保存，方便你下载查看
+      # 6. 上传安全扫描报告（已更新为 v4）
       - name: Upload Security Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
           path: |
             bandit-report.json
             safety-report.json
+          retention-days: 5
